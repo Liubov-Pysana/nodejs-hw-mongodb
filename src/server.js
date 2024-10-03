@@ -1,56 +1,68 @@
 import express from 'express';
+import pino from 'pino-http';
 import cors from 'cors';
-
 import { env } from './utils/env.js';
-
-import * as contactServices from './services/contacts.js';
+import { getAllContacts, getContactById } from './services/contacts.js';
 
 export const setupServer = () => {
   const app = express();
 
-  app.use(cors());
   app.use(express.json());
+  app.use(cors());
+
+  app.use(
+    pino({
+      transport: {
+        target: 'pino-pretty',
+      },
+    }),
+  );
 
   app.get('/contacts', async (req, res) => {
-    const data = await contactServices.getAllContacts();
+    const contacts = await getAllContacts();
 
-    res.json({
+    res.status(200).json({
       status: 200,
       message: 'Successfully found contacts!',
-      data,
+      data: contacts,
     });
   });
 
-  app.get('/contacts/:ContactId', async (req, res) => {
-    const { ContactId } = req.params;
-    const data = await contactServices.getContactById(ContactId);
+  app.get('/contacts/:contactId', async (req, res, next) => {
+    const { contactId } = req.params;
+    const contact = await getContactById(contactId);
 
-    if (!data) {
-      return res.status(404).json({
-        message: `Contact with id=${ContactId} not found`,
+    // Відповідь, якщо контакт не знайдено
+    if (!contact) {
+      res.status(404).json({
+        message: 'Contact not found',
       });
+      return;
     }
-
-    res.json({
+    // Відповідь, якщо контакт знайдено
+    res.status(200).json({
       status: 200,
-      message: `Contact with ${ContactId} successfully find`,
-      data,
+      message: `Successfully found contact with id ${contactId}!`,
+      data: contact,
     });
   });
 
-  app.use((req, res) => {
+  app.use('*', (req, res, next) => {
     res.status(404).json({
-      message: `${req.url} not found`,
+      message: `${req.url} Not found`,
     });
   });
 
-  app.use((error, req, res, next) => {
+  app.use((err, req, res, next) => {
     res.status(500).json({
-      message: error.message,
+      message: 'Something went wrong',
+      error: err.message,
     });
   });
 
-  const port = Number(env('PORT', 3000));
+  const PORT = Number(env('PORT', '3000'));
 
-  app.listen(port, () => console.log('Server running on port 3000'));
+  app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
 };
