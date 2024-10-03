@@ -3,18 +3,22 @@ import { env } from '../utils/env.js';
 
 export const initMongoConnection = async () => {
   try {
+    // Load environment variables
     const user = env('MONGODB_USER');
-    const password = encodeURIComponent(env('MONGODB_PASSWORD')); // Ensure special characters are encoded
+    const password = encodeURIComponent(env('MONGODB_PASSWORD'));  // Encode special characters in the password
     const url = env('MONGODB_URL');
     const db = env('MONGODB_DB');
 
-    const DB_HOST = `mongodb+srv://${user}:${password}@${url}/${db}?retryWrites=true&w=majority&appName=Cluster0`;
+    // Log the MONGODB_USER environment variable
+    console.log('MONGODB_USER:', user);
 
-    console.log(
-      `Connecting to MongoDB: mongodb+srv://${user}:<password>@${url}/${db}`,
-    ); // Debug URI without the actual password
+    // Construct MongoDB connection string
+    const DB_HOST = `mongodb+srv://${user}:${password}@${url}/${db}?retryWrites=true&w=majority`;
 
-    await mongoose.connect(DB_HOST); // No options are needed now
+    console.log(`Connecting to MongoDB: ${DB_HOST.replace(password, '***')}`);  // Log the connection string without exposing the password
+
+    // Connect to MongoDB
+    await mongoose.connect(DB_HOST);
 
     console.log('Mongo connection successfully established!');
   } catch (error) {
