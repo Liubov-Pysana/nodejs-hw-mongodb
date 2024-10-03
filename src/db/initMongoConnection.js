@@ -14,11 +14,7 @@ export const initMongoConnection = async () => {
       `Connecting to MongoDB: mongodb+srv://${user}:<password>@${url}/${db}`,
     ); // Debug URI without the actual password
 
-    // Make sure to pass the options for mongoose connection
-    await mongoose.connect(DB_HOST, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(DB_HOST); // No options are needed now
 
     console.log('Mongo connection successfully established!');
   } catch (error) {
