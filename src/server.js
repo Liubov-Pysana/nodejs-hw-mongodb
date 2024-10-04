@@ -24,13 +24,10 @@ export const setupServer = () => {
     }),
   );
 
-  // Use the contacts router for handling requests to /contacts routes
   app.use('/api', contactsRouter);
 
-  // Handle requests to unknown routes
   app.use('*', notFoundHandler);
 
-  // Apply error handling middleware
   app.use(errorHandler);
 
   app.listen(PORT, () => {
