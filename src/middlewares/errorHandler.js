@@ -1,13 +1,9 @@
-import { HttpError } from 'http-errors';
+const errorHandler = (err, req, res, next) => {
+  console.error(`[ERROR] ${req.method} ${req.url} - ${err.message}`);
 
-export const errorHandler = (err, req, res, next) => {
-  if (err instanceof HttpError) {
-    res.status(err.status).json({
-      status: err.status,
-      message: err.message,
-      data: err,
-    });
-    return;
+  // Log stack trace in development mode for better debugging
+  if (process.env.NODE_ENV !== 'production') {
+    console.error(err.stack);
   }
 
   res.status(500).json({
@@ -16,3 +12,5 @@ export const errorHandler = (err, req, res, next) => {
     data: err.message || 'Unknown error',
   });
 };
+
+export default errorHandler;
