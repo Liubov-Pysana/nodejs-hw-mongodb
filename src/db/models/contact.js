@@ -20,6 +20,10 @@ const contactSchema = new Schema(
       enum: ['personal', 'home'],
       required: true,
     },
+    email: {
+      type: String,
+      required: false,
+    },
   },
   { versionKey: false, timestamps: true },
 );
