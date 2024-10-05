@@ -1,12 +1,13 @@
-const errorHandler = (err, req, res, next) => {
+const errorHandler = (err, req, res) => {
   console.error(`[ERROR] ${req.method} ${req.url} - ${err.message}`);
 
   if (process.env.NODE_ENV !== 'production') {
     console.error(err.stack);
   }
 
-  res.status(500).json({
-    status: 500,
+  const status = err.status || 500;
+  res.status(status).json({
+    status,
     message: 'Something went wrong',
     data: err.message || 'Unknown error',
   });
