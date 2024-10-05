@@ -1,3 +1,5 @@
+// src/server.js
+
 import express from 'express';
 import pino from 'pino-http';
 import cors from 'cors';
@@ -24,10 +26,21 @@ export const setupServer = () => {
     }),
   );
 
+  // Handle root ("/") requests with a simple message
+  app.get('/', (req, res) => {
+    res.json({
+      message:
+        'Welcome to the Contacts API. Use /api/contacts for contact operations.',
+    });
+  });
+
+  // Route for handling contact operations
   app.use('/api', contactsRouter);
 
+  // Handle requests to unknown routes (404)
   app.use('*', notFoundHandler);
 
+  // Apply error handling middleware
   app.use(errorHandler);
 
   app.listen(PORT, () => {
