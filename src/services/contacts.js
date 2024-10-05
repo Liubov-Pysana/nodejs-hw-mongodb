@@ -2,9 +2,20 @@
 
 import ContactCollection from '../db/models/contact.js';
 
-export const getAllContacts = async () => {
-  const contacts = await ContactCollection.find();
-  return contacts;
+export const getAllContacts = async ({
+  filter,
+  sortBy,
+  sortOrder,
+  skip,
+  perPage,
+}) => {
+  const totalItems = await ContactCollection.countDocuments(filter);
+  const contacts = await ContactCollection.find(filter)
+    .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+    .skip(skip)
+    .limit(Number(perPage));
+
+  return { contacts, totalItems };
 };
 
 export const getContactById = async (contactId) => {
@@ -26,7 +37,6 @@ export const createContact = async ({
     isFavourite,
     contactType,
   });
-
   const savedContact = await newContact.save();
   return savedContact;
 };

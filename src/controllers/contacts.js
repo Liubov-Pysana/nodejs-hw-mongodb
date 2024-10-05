@@ -26,15 +26,16 @@ export const getContacts = async (req, res, next) => {
     if (type) filter.contactType = type;
     if (isFavourite !== undefined) filter.isFavourite = isFavourite === 'true';
 
-    // Total count of filtered documents
-    const totalItems = await ContactCollection.countDocuments(filter);
-    const totalPages = Math.ceil(totalItems / perPage);
+    // Use the service function to fetch contacts (implement this in services)
+    const { contacts, totalItems } = await getAllContactsService({
+      filter,
+      sortBy,
+      sortOrder,
+      skip,
+      perPage,
+    });
 
-    // Fetching filtered, sorted, and paginated contacts
-    const contacts = await ContactCollection.find(filter)
-      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
-      .skip(skip)
-      .limit(Number(perPage));
+    const totalPages = Math.ceil(totalItems / perPage);
 
     res.status(200).json({
       status: 200,
