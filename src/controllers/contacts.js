@@ -1,3 +1,5 @@
+// src/controllers/contacts.js
+
 import createError from 'http-errors';
 import {
   getAllContacts as getAllContactsService,
@@ -9,11 +11,43 @@ import {
 
 export const getContacts = async (req, res, next) => {
   try {
-    const contacts = await getAllContactsService();
+    const {
+      page = 1,
+      perPage = 10,
+      sortBy = 'name',
+      sortOrder = 'asc',
+      type,
+      isFavourite,
+    } = req.query;
+    const skip = (page - 1) * perPage;
+
+    // Filtering options
+    const filter = {};
+    if (type) filter.contactType = type;
+    if (isFavourite !== undefined) filter.isFavourite = isFavourite === 'true';
+
+    // Total count of filtered documents
+    const totalItems = await ContactCollection.countDocuments(filter);
+    const totalPages = Math.ceil(totalItems / perPage);
+
+    // Fetching filtered, sorted, and paginated contacts
+    const contacts = await ContactCollection.find(filter)
+      .sort({ [sortBy]: sortOrder === 'asc' ? 1 : -1 })
+      .skip(skip)
+      .limit(Number(perPage));
+
     res.status(200).json({
       status: 200,
       message: 'Successfully found contacts!',
-      data: contacts,
+      data: {
+        data: contacts,
+        page: Number(page),
+        perPage: Number(perPage),
+        totalItems,
+        totalPages,
+        hasPreviousPage: page > 1,
+        hasNextPage: page < totalPages,
+      },
     });
   } catch (error) {
     next(error);

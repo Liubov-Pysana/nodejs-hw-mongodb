@@ -1,4 +1,6 @@
-import ContactCollection from '../db/models/contact.js'; // Correct import for default export
+// src/services/contacts.js
+
+import ContactCollection from '../db/models/contact.js';
 
 export const getAllContacts = async () => {
   const contacts = await ContactCollection.find();
