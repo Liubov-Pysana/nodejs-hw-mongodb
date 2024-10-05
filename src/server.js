@@ -1,5 +1,3 @@
-// src/server.js
-
 import express from 'express';
 import pino from 'pino-http';
 import cors from 'cors';
@@ -12,12 +10,12 @@ import notFoundHandler from './middlewares/notFoundHandler.js';
 dotenv.config();
 const PORT = Number(env('PORT', '3000'));
 
+console.log(`Server is attempting to listen on port: ${PORT}`);
 export const setupServer = () => {
   const app = express();
 
   app.use(express.json());
   app.use(cors());
-
   app.use(
     pino({
       transport: {
@@ -25,24 +23,15 @@ export const setupServer = () => {
       },
     }),
   );
-
-  // Handle root ("/") requests with a simple message
   app.get('/', (req, res) => {
     res.json({
       message:
         'Welcome to the Contacts API. Use /api/contacts for contact operations.',
     });
   });
-
-  // Route for handling contact operations
   app.use('/api', contactsRouter);
-
-  // Handle requests to unknown routes (404)
   app.use('*', notFoundHandler);
-
-  // Apply error handling middleware
   app.use(errorHandler);
-
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });

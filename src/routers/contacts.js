@@ -1,5 +1,3 @@
-// src/routers/contacts.js
-
 import express from 'express';
 import {
   getContacts,

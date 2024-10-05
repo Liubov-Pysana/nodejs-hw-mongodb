@@ -1,9 +1,9 @@
 const ctrlWrapper = (ctrl) => {
   return async (req, res, next) => {
     try {
-      await ctrl(req, res, next); // Pass `next` here to the controller
+      await ctrl(req, res, next);
     } catch (err) {
-      next(err); // Call next() if an error occurs
+      next(err);
     }
   };
 };

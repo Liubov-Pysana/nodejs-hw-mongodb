@@ -1,5 +1,3 @@
-// src/controllers/contacts.js
-
 import createError from 'http-errors';
 import {
   getAllContacts as getAllContactsService,
@@ -21,12 +19,10 @@ export const getContacts = async (req, res, next) => {
     } = req.query;
     const skip = (page - 1) * perPage;
 
-    // Filtering options
     const filter = {};
     if (type) filter.contactType = type;
     if (isFavourite !== undefined) filter.isFavourite = isFavourite === 'true';
 
-    // Use the service function to fetch contacts (implement this in services)
     const { contacts, totalItems } = await getAllContactsService({
       filter,
       sortBy,

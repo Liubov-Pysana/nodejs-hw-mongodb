@@ -1,5 +1,3 @@
-// db/models/contact.js
-
 import { Schema, model } from 'mongoose';
 
 const contactSchema = new Schema(
@@ -13,7 +11,7 @@ const contactSchema = new Schema(
       required: true,
     },
     email: {
-      type: String, // Email is optional, but ensure it's properly defined
+      type: String,
       required: false,
     },
     isFavourite: {
@@ -30,6 +28,6 @@ const contactSchema = new Schema(
   { versionKey: false, timestamps: true },
 );
 
-const ContactCollection = model('Contact', contactSchema); // Ensure the model name is correct
+const ContactCollection = model('Contact', contactSchema);
 
 export default ContactCollection;
