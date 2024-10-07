@@ -1,11 +1,5 @@
+import ContactCollection from '../db/models/contact.js';
 import createHttpError from 'http-errors';
-import {
-  getAllContacts as getAllContactsService,
-  getContactById as getContactByIdService,
-  createContact as createContactService,
-  updateContact as updateContactService,
-  deleteContact as deleteContactService,
-} from '../services/contacts.js';
 
 export const getContacts = async (req, res) => {
   const {
@@ -47,7 +41,7 @@ export const getContacts = async (req, res) => {
 
 export const getContactById = async (req, res) => {
   const { contactId } = req.params;
-  const contact = await getContactByIdService(contactId);
+  const contact = await ContactCollection.findById(contactId);
 
   if (!contact) {
     throw createHttpError(404, `Contact with id ${contactId} not found`);
@@ -69,7 +63,7 @@ export const createContact = async (req, res) => {
     contactType,
   } = req.body;
 
-  const newContact = await createContactService({
+  const newContact = await ContactCollection.create({
     name,
     phoneNumber,
     email,
@@ -88,13 +82,11 @@ export const updateContact = async (req, res) => {
   const { contactId } = req.params;
   const { name, phoneNumber, email, isFavourite, contactType } = req.body;
 
-  const updatedContact = await updateContactService(contactId, {
-    name,
-    phoneNumber,
-    email,
-    isFavourite,
-    contactType,
-  });
+  const updatedContact = await ContactCollection.findByIdAndUpdate(
+    contactId,
+    { name, phoneNumber, email, isFavourite, contactType },
+    { new: true, runValidators: true },
+  );
 
   if (!updatedContact) {
     throw createHttpError(404, 'Contact not found');
@@ -110,7 +102,7 @@ export const updateContact = async (req, res) => {
 export const deleteContact = async (req, res) => {
   const { contactId } = req.params;
 
-  const deletedContact = await deleteContactService(contactId);
+  const deletedContact = await ContactCollection.findByIdAndDelete(contactId);
 
   if (!deletedContact) {
     throw createHttpError(404, 'Contact not found');

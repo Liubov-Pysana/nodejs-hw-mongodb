@@ -14,10 +14,7 @@ export const initMongoConnection = async () => {
 
     console.log(`Connecting to MongoDB: ${DB_HOST.replace(password, '***')}`);
 
-    await mongoose.connect(DB_HOST, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    await mongoose.connect(DB_HOST);
 
     console.log('Mongo connection successfully established!');
 
