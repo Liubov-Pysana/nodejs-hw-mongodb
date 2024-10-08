@@ -21,22 +21,9 @@ export const getContactById = async (contactId) => {
   return contact;
 };
 
-export const createContact = async ({
-  name,
-  phoneNumber,
-  email,
-  isFavourite,
-  contactType,
-}) => {
-  const newContact = new ContactCollection({
-    name,
-    phoneNumber,
-    email,
-    isFavourite,
-    contactType,
-  });
-  const savedContact = await newContact.save();
-  return savedContact;
+export const createContact = async (contactData) => {
+  const newContact = await ContactCollection.create(contactData);
+  return newContact;
 };
 
 export const updateContact = async (contactId, updateData) => {

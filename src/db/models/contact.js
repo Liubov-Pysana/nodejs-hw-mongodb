@@ -1,10 +1,12 @@
-import { Schema, model } from 'mongoose';
+import mongoose from 'mongoose';
 
-const contactSchema = new Schema(
+const contactSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: true,
+      minlength: 3,
+      maxlength: 20,
     },
     phoneNumber: {
       type: String,
@@ -17,7 +19,6 @@ const contactSchema = new Schema(
     isFavourite: {
       type: Boolean,
       default: false,
-      required: true,
     },
     contactType: {
       type: String,
@@ -25,9 +26,9 @@ const contactSchema = new Schema(
       required: true,
     },
   },
-  { versionKey: false, timestamps: true },
+  { timestamps: true, versionKey: false },
 );
 
-const ContactCollection = model('Contact', contactSchema);
+const ContactCollection = mongoose.model('Contact', contactSchema);
 
 export default ContactCollection;
