@@ -26,10 +26,16 @@ export const setupServer = () => {
       },
     }),
   );
+
+  // Auth routes
   app.use('/auth', authRouter);
+
+  // Contacts routes, protected by the authenticate middleware
   app.use('/contacts', authenticate, contactsRouter);
+
   app.use('*', notFoundHandler);
   app.use(errorHandler);
+
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });

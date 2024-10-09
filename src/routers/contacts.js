@@ -10,20 +10,30 @@ import ctrlWrapper from '../utils/ctrlWrapper.js';
 import { validateBody } from '../middlewares/validateBody.js';
 import { contactSchema } from '../validation/contactValidation.js';
 import isValidId from '../middlewares/isValidId.js';
-import { authenticate } from '../middlewares/authenticate.js';
+import authenticate from '../middlewares/authenticate.js'; // Default import for authenticate
 
 const router = express.Router();
 
-router.use(authenticate);
-router.get('/', ctrlWrapper(getContacts));
-router.get('/:contactId', isValidId, ctrlWrapper(getContactById));
-router.post('/', validateBody(contactSchema), ctrlWrapper(createContact));
+router.get('/', authenticate, ctrlWrapper(getContacts));
+router.get('/:contactId', isValidId, authenticate, ctrlWrapper(getContactById));
+router.post(
+  '/',
+  authenticate,
+  validateBody(contactSchema),
+  ctrlWrapper(createContact),
+);
 router.patch(
   '/:contactId',
   isValidId,
+  authenticate,
   validateBody(contactSchema),
   ctrlWrapper(updateContact),
 );
-router.delete('/:contactId', isValidId, ctrlWrapper(deleteContact));
+router.delete(
+  '/:contactId',
+  isValidId,
+  authenticate,
+  ctrlWrapper(deleteContact),
+);
 
 export default router;
