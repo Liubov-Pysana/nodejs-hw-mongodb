@@ -1,14 +1,16 @@
+// src/controllers/contacts.js
+
 import createHttpError from 'http-errors';
 import { parseContactsFilterParams } from '../utils/parseContactsFilterParams.js';
 import { calculatePaginationData } from '../utils/calculatePaginationData.js';
-import { parseSortParams } from '../utils/parseSortParams.js'; // Importing the parseSortParams function
+import { parseSortParams } from '../utils/parseSortParams.js';
 import * as contactServices from '../services/contacts.js';
+import { contactList } from '../constants/contacts.js'; // Import the contact types
 
 export const getContacts = async (req, res, next) => {
   try {
     const { page = 1, perPage = 10 } = req.query;
 
-    // Using parseSortParams to handle sorting logic
     const { sortBy = 'name', sortOrder = 'asc' } = parseSortParams(req.query);
 
     const filter = parseContactsFilterParams(req.query);
@@ -61,6 +63,13 @@ export const getContactById = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
+    const contactType = req.body.contactType;
+
+    // Validate the contactType field against the allowed contact types
+    if (!contactList.includes(contactType)) {
+      throw createHttpError(400, 'Invalid contact type');
+    }
+
     const contact = await contactServices.createContact(req.body);
 
     res.status(201).json({

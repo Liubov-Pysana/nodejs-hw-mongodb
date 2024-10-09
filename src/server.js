@@ -27,6 +27,12 @@ export const setupServer = () => {
     }),
   );
 
+  app.get('/', (req, res) => {
+    res.status(200).json({
+      message: 'Server is running!',
+      status: 200,
+    });
+  });
   // Auth routes
   app.use('/auth', authRouter);
 

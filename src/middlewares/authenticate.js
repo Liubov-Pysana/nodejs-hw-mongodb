@@ -1,23 +1,32 @@
 import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import { env } from '../utils/env.js';
+import UserCollection from '../db/models/user.js';
 
-const authenticate = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader) {
-    return next(createHttpError(401, 'Authorization header missing'));
-  }
-
-  const token = authHeader.split(' ')[1]; // Assuming Bearer token
-
+const authenticate = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, env('JWT_SECRET'));
-    req.user = decoded; // Add decoded user information to req object
-    next();
+    const authorizationHeader = req.headers.authorization;
+    if (!authorizationHeader) {
+      throw createHttpError(401, 'Authorization header is missing');
+    }
+
+    const token = authorizationHeader.split(' ')[1]; // Extract the token
+    if (!token) {
+      throw createHttpError(401, 'Token is missing');
+    }
+
+    const decoded = jwt.verify(token, env('ACCESS_TOKEN_SECRET'));
+
+    const user = await UserCollection.findById(decoded.userId);
+    if (!user) {
+      throw createHttpError(401, 'User not found');
+    }
+
+    req.user = user; // Attach the authenticated user to the request object
+    next(); // Continue to the next middleware
   } catch (error) {
-    return next(createHttpError(401, 'Invalid token'));
+    next(error);
   }
 };
 
-export default authenticate; // Default export
+export default authenticate; // Ensure this is a default export
