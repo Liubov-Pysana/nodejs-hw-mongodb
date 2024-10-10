@@ -1,16 +1,13 @@
-// src/controllers/contacts.js
-
 import createHttpError from 'http-errors';
 import { parseContactsFilterParams } from '../utils/parseContactsFilterParams.js';
 import { calculatePaginationData } from '../utils/calculatePaginationData.js';
 import { parseSortParams } from '../utils/parseSortParams.js';
 import * as contactServices from '../services/contacts.js';
-import { contactList } from '../constants/contacts.js'; // Import the contact types
+import { contactList } from '../constants/contacts.js';
 
 export const getContacts = async (req, res, next) => {
   try {
     const { page = 1, perPage = 10 } = req.query;
-
     const { sortBy = 'name', sortOrder = 'asc' } = parseSortParams(req.query);
 
     const filter = parseContactsFilterParams(req.query);
@@ -21,6 +18,7 @@ export const getContacts = async (req, res, next) => {
       sortOrder,
       skip: (page - 1) * perPage,
       perPage,
+      userId: req.user._id,
     });
 
     const pagination = calculatePaginationData({
@@ -45,7 +43,10 @@ export const getContacts = async (req, res, next) => {
 export const getContactById = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const contact = await contactServices.getContactById(contactId);
+    const contact = await contactServices.getContactById(
+      contactId,
+      req.user._id,
+    );
 
     if (!contact) {
       throw createHttpError(404, `Contact with id ${contactId} not found`);
@@ -63,14 +64,10 @@ export const getContactById = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const contactType = req.body.contactType;
-
-    // Validate the contactType field against the allowed contact types
-    if (!contactList.includes(contactType)) {
-      throw createHttpError(400, 'Invalid contact type');
-    }
-
-    const contact = await contactServices.createContact(req.body);
+    const contact = await contactServices.createContact({
+      ...req.body,
+      userId: req.user._id,
+    });
 
     res.status(201).json({
       status: 201,
@@ -88,6 +85,7 @@ export const updateContact = async (req, res, next) => {
     const updatedContact = await contactServices.updateContact(
       contactId,
       req.body,
+      req.user._id,
     );
 
     if (!updatedContact) {
@@ -107,7 +105,10 @@ export const updateContact = async (req, res, next) => {
 export const deleteContact = async (req, res, next) => {
   try {
     const { contactId } = req.params;
-    const deletedContact = await contactServices.deleteContact(contactId);
+    const deletedContact = await contactServices.deleteContact(
+      contactId,
+      req.user._id,
+    );
 
     if (!deletedContact) {
       throw createHttpError(404, 'Contact not found');

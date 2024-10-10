@@ -10,23 +10,27 @@ const authenticate = async (req, res, next) => {
       throw createHttpError(401, 'Authorization header is missing');
     }
 
-    const token = authorizationHeader.split(' ')[1]; // Extract the token
+    const [bearer, token] = authorizationHeader.split(' ');
+    if (bearer !== 'Bearer') {
+      throw createHttpError(401, 'Authorization header must be of Bearer type');
+    }
+
     if (!token) {
       throw createHttpError(401, 'Token is missing');
     }
 
-    const decoded = jwt.verify(token, env('ACCESS_TOKEN_SECRET'));
+    const decoded = jwt.verify(token, env('JWT_SECRET'));
 
-    const user = await UserCollection.findById(decoded.userId);
+    const user = await UserCollection.findById(decoded.id);
     if (!user) {
       throw createHttpError(401, 'User not found');
     }
 
-    req.user = user; // Attach the authenticated user to the request object
-    next(); // Continue to the next middleware
+    req.user = user;
+    next();
   } catch (error) {
     next(error);
   }
 };
 
-export default authenticate; // Ensure this is a default export
+export default authenticate;

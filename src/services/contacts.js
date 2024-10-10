@@ -16,8 +16,11 @@ export const getAllContacts = async ({
   return { contacts, totalItems };
 };
 
-export const getContactById = async (contactId) => {
-  const contact = await ContactCollection.findById(contactId);
+export const getContactById = async (contactId, userId) => {
+  const contact = await ContactCollection.findOne({
+    _id: contactId,
+    userId,
+  });
   return contact;
 };
 
@@ -26,16 +29,19 @@ export const createContact = async (contactData) => {
   return newContact;
 };
 
-export const updateContact = async (contactId, updateData) => {
-  const updatedContact = await ContactCollection.findByIdAndUpdate(
-    contactId,
+export const updateContact = async (contactId, updateData, userId) => {
+  const updatedContact = await ContactCollection.findOneAndUpdate(
+    { _id: contactId, userId },
     { $set: updateData },
     { new: true, runValidators: true },
   );
   return updatedContact;
 };
 
-export const deleteContact = async (contactId) => {
-  const deletedContact = await ContactCollection.findByIdAndDelete(contactId);
+export const deleteContact = async (contactId, userId) => {
+  const deletedContact = await ContactCollection.findOneAndDelete({
+    _id: contactId,
+    userId,
+  });
   return deletedContact;
 };
