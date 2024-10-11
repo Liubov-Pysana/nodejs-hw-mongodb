@@ -1,17 +1,14 @@
-// src/services/auth.js
-
 import bcrypt from 'bcryptjs';
 import createHttpError from 'http-errors';
 import { randomBytes } from 'crypto';
 
 import SessionCollection from '../db/models/session.js';
-import UserCollection from '../db/models/user.js'; // Assuming the user model is in db/models/user.js
+import UserCollection from '../db/models/user.js';
 
 import {
   accessTokenLifetime,
   refreshTokenLifetime,
-} from '../constants/users.js'; // Import constants
-
+} from '../constants/users.js';
 const createSession = () => {
   const accessToken = randomBytes(30).toString('base64');
   const refreshToken = randomBytes(30).toString('base64');

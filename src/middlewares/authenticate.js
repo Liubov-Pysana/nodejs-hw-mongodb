@@ -2,6 +2,7 @@ import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
 import { env } from '../utils/env.js';
 import UserCollection from '../db/models/user.js';
+import { findSessionByAccessToken } from '../services/auth.js';
 
 const authenticate = async (req, res, next) => {
   try {
@@ -20,6 +21,10 @@ const authenticate = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, env('JWT_SECRET'));
+    const session = await findSessionByAccessToken(token);
+    if (!session) {
+      throw createHttpError(401, 'Session not found, user might be logged out');
+    }
 
     const user = await UserCollection.findById(decoded.id);
     if (!user) {
