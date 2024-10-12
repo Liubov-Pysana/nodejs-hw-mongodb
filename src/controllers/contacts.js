@@ -47,12 +47,12 @@ export const getContactByIdController = async (req, res) => {
 };
 
 export const addContactController = async (req, res) => {
-  let poster;
+  let photo;
   if (req.file) {
     if (enableCloudinary === 'true') {
-      poster = await saveFileToCloudinary(req.file, 'posters');
+      photo = await saveFileToCloudinary(req.file, 'photos');
     } else {
-      poster = await saveFileToUploadDir(req.file);
+      photo = await saveFileToUploadDir(req.file);
     }
   }
 
@@ -60,12 +60,12 @@ export const addContactController = async (req, res) => {
   const data = await contactServices.createContact({
     ...req.body,
     userId,
-    poster,
+    photo,
   });
 
   res.status(201).json({
     status: 201,
-    message: 'Movie add successfully',
+    message: 'Cantact added successfully',
     data,
   });
 };
