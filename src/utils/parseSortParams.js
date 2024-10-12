@@ -1,13 +1,15 @@
 import { SORT_ORDER } from '../constants/index.js';
-export const parseSortParams = (query) => {
-  const { sortBy = 'name', sortOrder = 'asc' } = query;
 
-  if (!SORT_ORDER.includes(sortOrder)) {
-    throw new Error(`Invalid sort order: ${sortOrder}`);
-  }
+const parseSortParams = ({ sortBy, sortFields, sortOrder }) => {
+  const parsedSortBy = sortFields.includes(sortBy) ? sortBy : '_id';
+  const parsedSortOrder = SORT_ORDER.includes(sortOrder)
+    ? sortOrder
+    : SORT_ORDER[0];
 
   return {
-    sortBy,
-    sortOrder,
+    sortBy: parsedSortBy,
+    sortOrder: parsedSortOrder,
   };
 };
+
+export default parseSortParams;

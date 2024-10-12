@@ -1,41 +1,39 @@
-import jwt from 'jsonwebtoken';
 import createHttpError from 'http-errors';
-import { env } from '../utils/env.js';
-import UserCollection from '../db/models/user.js';
-import { findSessionByAccessToken } from '../services/auth.js';
+
+import * as authServices from '../services/auth.js';
 
 const authenticate = async (req, res, next) => {
-  try {
-    const authorizationHeader = req.headers.authorization;
-    if (!authorizationHeader) {
-      throw createHttpError(401, 'Authorization header is missing');
-    }
+  const authorization = req.get('Authorization');
 
-    const [bearer, token] = authorizationHeader.split(' ');
-    if (bearer !== 'Bearer') {
-      throw createHttpError(401, 'Authorization header must be of Bearer type');
-    }
-
-    if (!token) {
-      throw createHttpError(401, 'Token is missing');
-    }
-
-    const decoded = jwt.verify(token, env('JWT_SECRET'));
-    const session = await findSessionByAccessToken(token);
-    if (!session) {
-      throw createHttpError(401, 'Session not found, user might be logged out');
-    }
-
-    const user = await UserCollection.findById(decoded.id);
-    if (!user) {
-      throw createHttpError(401, 'User not found');
-    }
-
-    req.user = user;
-    next();
-  } catch (error) {
-    next(error);
+  if (!authorization) {
+    return next(createHttpError(401, 'Authorization header not found'));
   }
+
+  const [bearer, token] = authorization.split(' ');
+
+  if (bearer !== 'Bearer') {
+    return next(
+      createHttpError(401, 'Authorization header must have Bearer type'),
+    );
+  }
+
+  const session = await authServices.findSessionByAccessToken(token);
+  if (!session) {
+    return next(createHttpError(401, 'Session not found'));
+  }
+
+  if (new Date() > session.accessTokenValidUntil) {
+    return next(createHttpError(401, 'Access token expired'));
+  }
+
+  const user = await authServices.findUser({ _id: session.userId });
+  if (!user) {
+    return next(createHttpError(401, 'User not found'));
+  }
+
+  req.user = user;
+
+  next();
 };
 
 export default authenticate;

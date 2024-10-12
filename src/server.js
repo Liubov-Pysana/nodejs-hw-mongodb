@@ -1,48 +1,30 @@
 import express from 'express';
-import pino from 'pino-http';
 import cors from 'cors';
-import dotenv from 'dotenv';
-import cookieParser from 'cookie-parser'; // Add cookie-parser for handling cookies
-import contactsRouter from './routers/contacts.js';
-import authRouter from './routers/auth.js'; // Import the new auth router
+import cookieParser from 'cookie-parser';
+
 import { env } from './utils/env.js';
-import errorHandler from './middlewares/errorHandler.js';
+
 import notFoundHandler from './middlewares/notFoundHandler.js';
-import authenticate from './middlewares/authenticate.js'; // Middleware to protect routes
+import errorHandler from './middlewares/errorHandler.js';
 
-dotenv.config();
-const PORT = Number(env('PORT', '3000'));
+import authRouter from './routers/auth.js';
+import contactsRouter from './routers/contacts.js';
 
-export const setupServer = () => {
+export const startServer = () => {
   const app = express();
 
-  app.use(express.json());
   app.use(cors());
+  app.use(express.json());
   app.use(cookieParser());
-  app.use(
-    pino({
-      transport: {
-        target: 'pino-pretty',
-      },
-    }),
-  );
 
-  app.get('/', (req, res) => {
-    res.status(200).json({
-      message: 'Server is running!',
-      status: 200,
-    });
-  });
-  // Auth routes
   app.use('/auth', authRouter);
+  app.use('/contacts', contactsRouter);
 
-  // Contacts routes, protected by the authenticate middleware
-  app.use('/contacts', authenticate, contactsRouter);
+  app.use(notFoundHandler);
 
-  app.use('*', notFoundHandler);
   app.use(errorHandler);
 
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
+  const port = Number(env('PORT', 3000));
+
+  app.listen(port, () => console.log('Server running on port 3000'));
 };

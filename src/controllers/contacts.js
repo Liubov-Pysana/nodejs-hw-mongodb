@@ -1,121 +1,120 @@
 import createHttpError from 'http-errors';
-import { parseContactsFilterParams } from '../utils/parseContactsFilterParams.js';
-import { calculatePaginationData } from '../utils/calculatePaginationData.js';
-import { parseSortParams } from '../utils/parseSortParams.js';
+import parsePaginationParams from '../utils/parsePaginationParams.js';
+import parseSortParams from '../utils/parseSortParams.js';
 import * as contactServices from '../services/contacts.js';
-import { contactList } from '../constants/contacts.js';
+import { parseContactsFilterParams } from '../utils/filters/parseContactsFilterParams.js';
+import saveFileToUploadDir from '../utils/saveFileToUploadDir.js';
+import saveFileToCloudinary from '../utils/saveFileToCloudinary.js';
+import { env } from '../utils/env.js';
+import { sortFields } from '../db/contacts.js';
 
-export const getContacts = async (req, res, next) => {
-  try {
-    const { page = 1, perPage = 10 } = req.query;
-    const { sortBy = 'name', sortOrder = 'asc' } = parseSortParams(req.query);
+const enableCloudinary = env('ENABLE_CLOUDINARY');
 
-    const filter = parseContactsFilterParams(req.query);
+export const getAllContactsController = async (req, res) => {
+  const { perPage, page } = parsePaginationParams(req.query);
+  const { sortBy, sortOrder } = parseSortParams({ ...req.query, sortFields });
+  const filter = parseContactsFilterParams(req.query);
+  const { _id: userId } = req.user;
+  const data = await contactServices.getContacts({
+    perPage,
+    page,
+    sortBy,
+    sortOrder,
+    filter: { ...filter, userId },
+  });
 
-    const { contacts, totalItems } = await contactServices.getAllContacts({
-      filter,
-      sortBy,
-      sortOrder,
-      skip: (page - 1) * perPage,
-      perPage,
-      userId: req.user._id,
-    });
-
-    const pagination = calculatePaginationData({
-      totalItems,
-      page: Number(page),
-      perPage: Number(perPage),
-    });
-
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully found contacts!',
-      data: {
-        contacts,
-        ...pagination,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
+  res.json({
+    status: 200,
+    message: 'Successfully found contacts',
+    data,
+  });
 };
 
-export const getContactById = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const contact = await contactServices.getContactById(
-      contactId,
-      req.user._id,
-    );
+export const getContactByIdController = async (req, res) => {
+  const { id } = req.params;
+  const { _id: userId } = req.user;
+  const data = await contactServices.getContact({ _id: id, userId });
 
-    if (!contact) {
-      throw createHttpError(404, `Contact with id ${contactId} not found`);
+  if (!data) {
+    throw createHttpError(404, `Contact with id=${id} not found`);
+  }
+
+  res.json({
+    status: 200,
+    message: `Contact with ${id} successfully find`,
+    data,
+  });
+};
+
+export const addContactController = async (req, res) => {
+  let poster;
+  if (req.file) {
+    if (enableCloudinary === 'true') {
+      poster = await saveFileToCloudinary(req.file, 'posters');
+    } else {
+      poster = await saveFileToUploadDir(req.file);
     }
-
-    res.status(200).json({
-      status: 200,
-      message: `Successfully found contact with id ${contactId}!`,
-      data: contact,
-    });
-  } catch (error) {
-    next(error);
   }
+
+  const { _id: userId } = req.user;
+  const data = await contactServices.createContact({
+    ...req.body,
+    userId,
+    poster,
+  });
+
+  res.status(201).json({
+    status: 201,
+    message: 'Movie add successfully',
+    data,
+  });
 };
 
-export const createContact = async (req, res, next) => {
-  try {
-    const contact = await contactServices.createContact({
-      ...req.body,
-      userId: req.user._id,
-    });
+export const upsertContactController = async (req, res) => {
+  const { id } = req.params;
+  const { _id: userId } = req.user;
+  const { isNew, data } = await contactServices.updateContact(
+    { _id: id, userId },
+    req.body,
+    { upsert: true },
+  );
 
-    res.status(201).json({
-      status: 201,
-      message: 'Successfully created a contact!',
-      data: contact,
-    });
-  } catch (error) {
-    next(error);
-  }
+  const status = isNew ? 201 : 200;
+
+  res.status(status).json({
+    status,
+    message: 'Contact upsert successfully',
+    data,
+  });
 };
 
-export const updateContact = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const updatedContact = await contactServices.updateContact(
-      contactId,
-      req.body,
-      req.user._id,
-    );
+export const patchContactController = async (req, res) => {
+  const { id } = req.params;
+  const { _id: userId } = req.user;
+  const result = await contactServices.updateContact(
+    { _id: id, userId },
+    req.body,
+  );
 
-    if (!updatedContact) {
-      throw createHttpError(404, 'Contact not found');
-    }
-
-    res.status(200).json({
-      status: 200,
-      message: 'Successfully updated contact!',
-      data: updatedContact,
-    });
-  } catch (error) {
-    next(error);
+  if (!result) {
+    throw createHttpError(404, `Contact with id=${id} not found`);
   }
+
+  res.json({
+    status: 200,
+    message: 'Contact patched successfully',
+    data: result.data,
+  });
 };
 
-export const deleteContact = async (req, res, next) => {
-  try {
-    const { contactId } = req.params;
-    const deletedContact = await contactServices.deleteContact(
-      contactId,
-      req.user._id,
-    );
+export const deleteContactController = async (req, res) => {
+  const { id } = req.params;
+  const { _id: userId } = req.user;
+  const data = await contactServices.deleteContact({ _id: id, userId });
 
-    if (!deletedContact) {
-      throw createHttpError(404, 'Contact not found');
-    }
-
-    res.status(204).send();
-  } catch (error) {
-    next(error);
+  if (!data) {
+    throw createHttpError(404, `Contact with id=${id} not found`);
   }
+
+  res.status(204).send();
 };
