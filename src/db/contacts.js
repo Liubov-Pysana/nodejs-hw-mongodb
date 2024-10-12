@@ -30,6 +30,9 @@ const contactSchema = new Schema(
     photo: {
       type: String,
     },
+    email: {
+      type: String,
+    },
 
     userId: {
       type: Schema.Types.ObjectId,

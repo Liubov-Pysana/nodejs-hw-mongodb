@@ -15,6 +15,7 @@ export const contactAddSchema = Joi.object({
     .max(20),
   isFavourite: Joi.boolean(),
   photo: Joi.string().max(200),
+  email: Joi.string().max(200),
 });
 
 export const contactPatchSchema = Joi.object({
@@ -27,4 +28,5 @@ export const contactPatchSchema = Joi.object({
     .min(3)
     .max(20),
   photo: Joi.string().max(200),
+  email: Joi.string().max(200),
 });
